@@ -1,30 +1,37 @@
-import 'package:dicoding_restaurant_app/data/api/api_services.dart';
-import 'package:dicoding_restaurant_app/data/model/seartch_result.dart';
+import 'package:dicoding_restaurant_app/provider/search_provider.dart';
 import 'package:dicoding_restaurant_app/screen/detail/restaurant_detail_page.dart';
+import 'package:dicoding_restaurant_app/static/search_state.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
 
   @override
-  _SearchPageState createState() => _SearchPageState();
+  State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
-  late Future<SearchResult> _searchResults;
 
   @override
   void initState() {
     super.initState();
-    _searchResults =
-        Future.value(SearchResult(error: false, founded: 0, restaurants: []));
+    _searchController.addListener(_performSearch);
   }
 
-  void _performSearch(String query) {
-    setState(() {
-      _searchResults = searchRestaurants(query);
-    });
+  void _performSearch() {
+    final query = _searchController.text;
+    if (query.isNotEmpty) {
+      final provider = Provider.of<SearchProvider>(context, listen: false);
+      provider.searchRestaurants(query);
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -35,7 +42,6 @@ class _SearchPageState extends State<SearchPage> {
       ),
       body: Column(
         children: [
-          // TextField untuk Pencarian
           Padding(
             padding: EdgeInsets.all(16.0),
             child: TextField(
@@ -44,33 +50,25 @@ class _SearchPageState extends State<SearchPage> {
                 hintText: 'Cari restoran...',
                 suffixIcon: IconButton(
                   icon: Icon(Icons.search),
-                  onPressed: () {
-                    _performSearch(_searchController.text);
-                  },
+                  onPressed: _performSearch,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              onSubmitted: (value) {
-                _performSearch(value);
-              },
             ),
           ),
-          // Hasil Pencarian
           Expanded(
-            child: FutureBuilder<SearchResult>(
-              future: _searchResults,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            child: Consumer<SearchProvider>(
+              builder: (context, provider, child) {
+                final state = provider.state;
+
+                if (state is SearchLoading) {
                   return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData ||
-                    snapshot.data!.restaurants.isEmpty) {
-                  return Center(child: Text('Tidak ada hasil ditemukan'));
-                } else {
-                  final restaurants = snapshot.data!.restaurants;
+                } else if (state is SearchError) {
+                  return Center(child: Text(state.message));
+                } else if (state is SearchSuccess) {
+                  final restaurants = state.restaurants;
                   return ListView.builder(
                     itemCount: restaurants.length,
                     itemBuilder: (context, index) {
@@ -101,6 +99,9 @@ class _SearchPageState extends State<SearchPage> {
                       );
                     },
                   );
+                } else {
+                  return Center(
+                      child: Text('Masukkan kata kunci untuk mencari'));
                 }
               },
             ),

@@ -1,3 +1,5 @@
+import 'package:dicoding_restaurant_app/data/api/api_services.dart';
+import 'package:dicoding_restaurant_app/data/model/review.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_detail_provider.dart';
 import 'package:dicoding_restaurant_app/static/restaurant_detail_state.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,44 @@ class RestaurantDetailPage extends StatefulWidget {
 }
 
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _reviewController = TextEditingController();
+  late Future<List<Review>> _reviews;
+
+  @override
+  void initState() {
+    super.initState();
+    _reviews = fetchReviews(widget.restaurantId);
+  }
+
+  void _submitReview() async {
+    final name = _nameController.text;
+    final review = _reviewController.text;
+
+    if (name.isEmpty || review.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nama dan ulasan tidak boleh kosong')),
+      );
+      return;
+    }
+
+    try {
+      await postReview(widget.restaurantId, name, review);
+      setState(() {
+        _reviews = fetchReviews(widget.restaurantId);
+      });
+      _nameController.clear();
+      _reviewController.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ulasan berhasil dikirim')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengirim ulasan: $e')),
+      );
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -42,7 +82,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Gambar Restoran
                   Hero(
                     tag: 'restaurant-image-${restaurant.id}',
                     child: ClipRRect(
@@ -56,7 +95,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     ),
                   ),
                   SizedBox(height: 16.0),
-                  // Nama Restoran
                   Hero(
                     tag: 'restaurant-name-${restaurant.id}',
                     child: Material(
@@ -71,7 +109,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     ),
                   ),
                   SizedBox(height: 8.0),
-                  // Rating dan Kota
                   Row(
                     children: [
                       Icon(Icons.star, color: Colors.amber, size: 20.0),
@@ -93,13 +130,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     ],
                   ),
                   SizedBox(height: 16.0),
-                  // Deskripsi Restoran
                   Text(
                     restaurant.description,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   SizedBox(height: 16.0),
-                  // Alamat Restoran
                   Text(
                     'Alamat: ${restaurant.address}',
                     style: Theme.of(context)
@@ -108,7 +143,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                         ?.copyWith(fontWeight: FontWeight.w400),
                   ),
                   SizedBox(height: 16.0),
-                  // Menu Makanan
                   Text(
                     'Menu Makanan:',
                     style: TextStyle(
@@ -117,7 +151,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     ),
                   ),
                   SizedBox(height: 8.0),
-                  // Grid untuk Menu Makanan
                   GridView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
@@ -155,7 +188,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     },
                   ),
                   SizedBox(height: 16.0),
-                  // Menu Minuman
                   Text(
                     'Menu Minuman:',
                     style: TextStyle(
@@ -164,7 +196,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     ),
                   ),
                   SizedBox(height: 8.0),
-                  // Grid untuk Menu Minuman
                   GridView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
@@ -199,6 +230,77 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                           ),
                         ),
                       );
+                    },
+                  ),
+                  Text(
+                    'Tambah Ulasan',
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8.0),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nama',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 8.0),
+                  TextField(
+                    controller: _reviewController,
+                    decoration: InputDecoration(
+                      labelText: 'Ulasan',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  SizedBox(height: 8.0),
+                  ElevatedButton(
+                    onPressed: _submitReview,
+                    child: Text('Kirim Ulasan'),
+                  ),
+                  SizedBox(height: 16.0),
+                  Text(
+                    'Ulasan Pelanggan',
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8.0),
+                  FutureBuilder<List<Review>>(
+                    future: _reviews,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text('Belum ada ulasan'));
+                      } else {
+                        final reviews = snapshot.data!;
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: reviews.length,
+                          itemBuilder: (context, index) {
+                            final review = reviews[index];
+                            return Card(
+                              margin: EdgeInsets.symmetric(vertical: 4.0),
+                              child: ListTile(
+                                title: Text(review.name),
+                                subtitle: Text(review.review),
+                                trailing: Text(
+                                  review.date,
+                                  style: TextStyle(fontSize: 12.0),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }
                     },
                   ),
                 ],

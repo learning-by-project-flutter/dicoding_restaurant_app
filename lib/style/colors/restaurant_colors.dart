@@ -1,4 +1,3 @@
-// todo-03: create and add colors for this app
 import 'package:flutter/material.dart';
 
 enum RestaurantColors {
