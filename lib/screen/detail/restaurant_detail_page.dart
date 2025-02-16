@@ -1,6 +1,7 @@
 import 'package:dicoding_restaurant_app/data/api/api_services.dart';
 import 'package:dicoding_restaurant_app/data/model/review.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_detail_provider.dart';
+import 'package:dicoding_restaurant_app/provider/review_provider.dart';
 import 'package:dicoding_restaurant_app/static/restaurant_detail_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,8 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   @override
   void initState() {
     super.initState();
-    _reviews = fetchReviews(widget.restaurantId);
+    final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+    reviewProvider.fetchReviews(widget.restaurantId);
   }
 
   void _submitReview() async {
@@ -36,21 +38,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
       return;
     }
 
-    try {
-      await postReview(widget.restaurantId, name, review);
-      setState(() {
-        _reviews = fetchReviews(widget.restaurantId);
-      });
-      _nameController.clear();
-      _reviewController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ulasan berhasil dikirim')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengirim ulasan: $e')),
-      );
-    }
+    final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+    await reviewProvider.postReview(widget.restaurantId, name, review);
+
+    _nameController.clear();
+    _reviewController.clear();
   }
 
   @override
@@ -270,17 +262,16 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     ),
                   ),
                   SizedBox(height: 8.0),
-                  FutureBuilder<List<Review>>(
-                    future: _reviews,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
+                  Consumer<ReviewProvider>(
+                    builder: (context, reviewProvider, child) {
+                      if (reviewProvider.isLoading) {
                         return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      } else if (reviewProvider.errorMessage.isNotEmpty) {
+                        return Center(child: Text(reviewProvider.errorMessage));
+                      } else if (reviewProvider.reviews.isEmpty) {
                         return Center(child: Text('Belum ada ulasan'));
                       } else {
-                        final reviews = snapshot.data!;
+                        final reviews = reviewProvider.reviews;
                         return ListView.builder(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
