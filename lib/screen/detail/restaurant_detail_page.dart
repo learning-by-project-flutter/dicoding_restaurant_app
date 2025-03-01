@@ -1,5 +1,3 @@
-import 'package:dicoding_restaurant_app/data/api/api_services.dart';
-import 'package:dicoding_restaurant_app/data/model/review.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_detail_provider.dart';
 import 'package:dicoding_restaurant_app/provider/review_provider.dart';
 import 'package:dicoding_restaurant_app/static/restaurant_detail_state.dart';
@@ -18,13 +16,12 @@ class RestaurantDetailPage extends StatefulWidget {
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _reviewController = TextEditingController();
-  late Future<List<Review>> _reviews;
 
   @override
   void initState() {
     super.initState();
     final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
-    reviewProvider.fetchReviews(widget.restaurantId);
+    Future.microtask(() => reviewProvider.fetchReviews(widget.restaurantId));
   }
 
   void _submitReview() async {
@@ -50,7 +47,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     super.didChangeDependencies();
     final provider =
         Provider.of<RestaurantDetailProvider>(context, listen: false);
-    provider.fetchRestaurantDetail(widget.restaurantId);
+    Future.microtask(() => provider.fetchRestaurantDetail(widget.restaurantId));
   }
 
   @override

@@ -25,6 +25,7 @@ class _SearchPageState extends State<SearchPage> {
     if (query.isNotEmpty) {
       final provider = Provider.of<SearchProvider>(context, listen: false);
       provider.searchRestaurants(query);
+      Future.microtask(() => {provider.searchRestaurants(query)});
     }
   }
 

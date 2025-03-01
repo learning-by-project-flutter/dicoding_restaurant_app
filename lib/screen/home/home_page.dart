@@ -1,7 +1,7 @@
-import 'package:dicoding_restaurant_app/provider/restaurant_provider.dart';
-import 'package:dicoding_restaurant_app/screen/home/restaurant_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:dicoding_restaurant_app/provider/restaurant_provider.dart';
+import 'package:dicoding_restaurant_app/screen/home/restaurant_list.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,16 +12,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
-  Widget build(BuildContext context) {
-    final restaurantProvider =
-        Provider.of<RestaurantProvider>(context, listen: false);
-    restaurantProvider.fetchRestaurants();
+  void initState() {
+    super.initState();
+    Future.microtask(() =>
+        Provider.of<RestaurantProvider>(context, listen: false)
+            .fetchRestaurants());
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Daftar Restoran'),
+        title: const Text('Daftar Restoran'),
       ),
-      body: RestaurantList(),
+      body: const RestaurantList(),
     );
   }
 }

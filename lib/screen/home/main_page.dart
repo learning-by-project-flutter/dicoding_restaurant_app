@@ -9,7 +9,7 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       HomePage(),
       SearchPage(),
     ];
@@ -17,7 +17,7 @@ class MainPage extends StatelessWidget {
     return Scaffold(
       body: Consumer<MainPageProvider>(
         builder: (context, provider, child) {
-          return _pages[provider.selectedIndex];
+          return pages[provider.selectedIndex];
         },
       ),
       bottomNavigationBar: Consumer<MainPageProvider>(
@@ -25,7 +25,7 @@ class MainPage extends StatelessWidget {
           return BottomNavigationBar(
             currentIndex: provider.selectedIndex,
             onTap: (index) {
-              provider.setSelectedIndex(index);
+              Future.microtask(() => provider.setSelectedIndex(index));
             },
             items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
