@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:dicoding_restaurant_app/data/model/restaurant.dart';
@@ -21,6 +22,10 @@ class DatabaseHelper {
   Future<Database> _initializeDb() async {
     final path = await getDatabasesPath();
     final dbPath = join(path, 'restaurant_app.db');
+
+    if (kDebugMode) {
+      print('Database path: $dbPath');
+    }
 
     return await openDatabase(
       dbPath,
