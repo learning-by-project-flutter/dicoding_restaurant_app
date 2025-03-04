@@ -75,7 +75,6 @@ class _FavoritePageState extends State<FavoritePage> {
                           ),
                         ),
                       ).then((_) {
-                        // Refresh when returning from detail page
                         provider.loadFavorites();
                       });
                     },

@@ -31,8 +31,7 @@ class ReviewProvider with ChangeNotifier {
       String restaurantId, String name, String review) async {
     try {
       await ApiServices.postReview(restaurantId, name, review);
-      await fetchReviews(
-          restaurantId); // Refresh ulasan setelah berhasil mengirim
+      await fetchReviews(restaurantId);
     } catch (e) {
       _errorMessage = 'Gagal mengirim ulasan: $e';
       notifyListeners();

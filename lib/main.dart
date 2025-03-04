@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dicoding_restaurant_app/provider/favorite_provider.dart';
+import 'package:dicoding_restaurant_app/provider/reminder_provider.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_detail_provider.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_provider.dart';
 import 'package:dicoding_restaurant_app/provider/review_provider.dart';
@@ -8,19 +9,18 @@ import 'package:dicoding_restaurant_app/provider/search_provider.dart';
 import 'package:dicoding_restaurant_app/provider/main_page_provider.dart';
 import 'package:dicoding_restaurant_app/provider/theme_provider.dart';
 import 'package:dicoding_restaurant_app/screen/home/main_page.dart';
-import 'package:dicoding_restaurant_app/service/notification_service.dart';
 import 'package:dicoding_restaurant_app/style/theme/restaurant_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-  final notificationService = NotificationService();
-  await notificationService.init();
 
   runApp(
     MultiProvider(
@@ -32,6 +32,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ReminderProvider()),
       ],
       child: MyApp(),
     ),
