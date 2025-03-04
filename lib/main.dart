@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dicoding_restaurant_app/provider/favorite_provider.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_detail_provider.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_provider.dart';
@@ -13,9 +15,10 @@ import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
-  sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
-
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
   final notificationService = NotificationService();
   await notificationService.init();
 
