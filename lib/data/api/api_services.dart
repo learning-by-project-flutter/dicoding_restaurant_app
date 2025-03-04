@@ -6,7 +6,7 @@ import 'package:dicoding_restaurant_app/data/model/review.dart';
 import 'package:dicoding_restaurant_app/data/model/search_result.dart';
 
 class ApiServices {
-  static Future<List<Restaurant>> fetchRestaurants() async {
+  Future<List<Restaurant>> fetchRestaurants() async {
     final response =
         await http.get(Uri.parse('https://restaurant-api.dicoding.dev/list'));
 
