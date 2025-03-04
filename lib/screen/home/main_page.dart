@@ -1,3 +1,4 @@
+import 'package:dicoding_restaurant_app/screen/settings/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dicoding_restaurant_app/screen/home/home_page.dart';
@@ -14,6 +15,7 @@ class MainPage extends StatelessWidget {
       HomePage(),
       SearchPage(),
       FavoritePage(),
+      SettingsPage(),
     ];
 
     return Scaffold(
@@ -41,6 +43,10 @@ class MainPage extends StatelessWidget {
               BottomNavigationBarItem(
                 icon: Icon(Icons.favorite),
                 label: 'Favorit',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
               ),
             ],
             selectedItemColor: Colors.blue,
