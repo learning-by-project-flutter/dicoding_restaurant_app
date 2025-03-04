@@ -25,4 +25,26 @@ class Restaurant {
       rating: json['rating'].toDouble(),
     );
   }
+
+  factory Restaurant.fromMap(Map<String, dynamic> map) {
+    return Restaurant(
+      id: map['id'],
+      name: map['name'],
+      description: map['description'],
+      pictureId: map['pictureId'],
+      city: map['city'],
+      rating: map['rating'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'pictureId': pictureId,
+      'city': city,
+      'rating': rating,
+    };
+  }
 }

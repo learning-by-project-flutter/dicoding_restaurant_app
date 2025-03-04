@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dicoding_restaurant_app/screen/home/home_page.dart';
 import 'package:dicoding_restaurant_app/screen/search/search_page.dart';
+import 'package:dicoding_restaurant_app/screen/favorite/favorite_page.dart';
 import 'package:dicoding_restaurant_app/provider/main_page_provider.dart';
 
 class MainPage extends StatelessWidget {
@@ -12,6 +13,7 @@ class MainPage extends StatelessWidget {
     final List<Widget> pages = [
       HomePage(),
       SearchPage(),
+      FavoritePage(),
     ];
 
     return Scaffold(
@@ -35,6 +37,10 @@ class MainPage extends StatelessWidget {
               BottomNavigationBarItem(
                 icon: Icon(Icons.search),
                 label: 'Pencarian',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.favorite),
+                label: 'Favorit',
               ),
             ],
             selectedItemColor: Colors.blue,

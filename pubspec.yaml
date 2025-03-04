@@ -11,7 +11,11 @@ dependencies:
     sdk: flutter
   flutter_vector_icons: ^2.0.0
   http: ^1.3.0
+  path: ^1.9.1
   provider: ^6.1.2
+  sqflite: ^2.4.2
+  sqflite_common: ^2.5.5
+  sqflite_common_ffi: ^2.3.5
 
 dev_dependencies:
   flutter_test:

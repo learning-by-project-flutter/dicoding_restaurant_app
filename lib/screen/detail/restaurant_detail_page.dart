@@ -1,3 +1,5 @@
+import 'package:dicoding_restaurant_app/data/model/restaurant.dart';
+import 'package:dicoding_restaurant_app/provider/favorite_provider.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_detail_provider.dart';
 import 'package:dicoding_restaurant_app/provider/review_provider.dart';
 import 'package:dicoding_restaurant_app/static/restaurant_detail_state.dart';
@@ -16,6 +18,7 @@ class RestaurantDetailPage extends StatefulWidget {
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _reviewController = TextEditingController();
+  bool _isFavorite = false;
 
   @override
   void initState() {
@@ -45,9 +48,19 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final provider =
+    final detailProvider =
         Provider.of<RestaurantDetailProvider>(context, listen: false);
-    Future.microtask(() => provider.fetchRestaurantDetail(widget.restaurantId));
+    Future.microtask(
+        () => detailProvider.fetchRestaurantDetail(widget.restaurantId));
+
+    final favoriteProvider =
+        Provider.of<FavoriteProvider>(context, listen: false);
+    Future.microtask(() async {
+      final isFav = await favoriteProvider.isFavorite(widget.restaurantId);
+      setState(() {
+        _isFavorite = isFav;
+      });
+    });
   }
 
   @override
@@ -55,10 +68,57 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Detail Restoran'),
+        actions: [
+          Consumer<RestaurantDetailProvider>(
+            builder: (context, detailProvider, _) {
+              final state = detailProvider.state;
+              if (state is RestaurantDetailSuccess) {
+                return IconButton(
+                  icon: Icon(
+                    _isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: _isFavorite ? Colors.red : null,
+                  ),
+                  onPressed: () async {
+                    final favoriteProvider =
+                        Provider.of<FavoriteProvider>(context, listen: false);
+                    final restaurant = state.restaurant;
+
+                    final restaurantData = Restaurant(
+                      id: restaurant.id,
+                      name: restaurant.name,
+                      description: restaurant.description,
+                      pictureId: restaurant.pictureId,
+                      city: restaurant.city,
+                      rating: restaurant.rating,
+                    );
+
+                    await favoriteProvider.toggleFavorite(restaurantData);
+                    final isFav =
+                        await favoriteProvider.isFavorite(restaurantData.id);
+
+                    setState(() {
+                      _isFavorite = isFav;
+                    });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(_isFavorite
+                            ? '${restaurant.name} ditambahkan ke favorit'
+                            : '${restaurant.name} dihapus dari favorit'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                );
+              }
+              return SizedBox.shrink();
+            },
+          ),
+        ],
       ),
       body: Consumer<RestaurantDetailProvider>(
-        builder: (context, provider, child) {
-          final state = provider.state;
+        builder: (context, detailProvider, child) {
+          final state = detailProvider.state;
 
           if (state is RestaurantDetailLoading) {
             return Center(child: CircularProgressIndicator());

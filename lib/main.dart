@@ -1,3 +1,4 @@
+import 'package:dicoding_restaurant_app/provider/favorite_provider.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_detail_provider.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_provider.dart';
 import 'package:dicoding_restaurant_app/provider/review_provider.dart';
@@ -7,8 +8,11 @@ import 'package:dicoding_restaurant_app/screen/home/main_page.dart';
 import 'package:dicoding_restaurant_app/style/theme/restaurant_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
   runApp(
     MultiProvider(
       providers: [
@@ -17,6 +21,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => SearchProvider()),
         ChangeNotifierProvider(create: (_) => MainPageProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
+        ChangeNotifierProvider(create: (_) => FavoriteProvider()),
       ],
       child: MyApp(),
     ),
@@ -29,6 +34,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Daftar Restoran',
       theme: RestaurantTheme.lightTheme,
       darkTheme: RestaurantTheme.darkTheme,
