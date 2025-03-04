@@ -1,0 +1,28 @@
+{
+  "buildFiles": [
+    "/opt/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/home/melanchorilla/Android/Sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/home/melanchorilla/Codes/Flutter/submission/dicoding_restaurant_app/android/app/.cxx/Debug/4p274020/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/home/melanchorilla/Android/Sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/home/melanchorilla/Codes/Flutter/submission/dicoding_restaurant_app/android/app/.cxx/Debug/4p274020/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {},
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/home/melanchorilla/Android/Sdk/ndk/29.0.13113456/toolchains/llvm/prebuilt/linux-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/home/melanchorilla/Android/Sdk/ndk/29.0.13113456/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": []
+}
