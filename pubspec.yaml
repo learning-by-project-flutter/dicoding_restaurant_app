@@ -4,12 +4,13 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.6.0-334.2.beta
+  sdk: ^3.7.0
 
 dependencies:
   flutter:
     sdk: flutter
   flutter_local_notifications: ^18.0.1
+  flutter_timezone: ^4.1.0
   flutter_vector_icons: ^2.0.0
   http: ^1.3.0
   path: ^1.9.1

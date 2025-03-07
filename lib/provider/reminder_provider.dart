@@ -38,33 +38,36 @@ class ReminderProvider extends ChangeNotifier {
   Future<void> _initNotifications() async {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    final InitializationSettings settings =
-        InitializationSettings(android: androidSettings);
+    final InitializationSettings settings = InitializationSettings(
+      android: androidSettings,
+    );
 
     await _notificationsPlugin.initialize(settings);
 
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.requestNotificationsPermission();
   }
 
   Future<void> _scheduleDailyReminder() async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'daily_reminder_channel',
-      'Daily Reminder',
-      channelDescription: 'Reminder untuk makan siang',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
+          'daily_reminder_channel',
+          'Daily Reminder',
+          channelDescription: 'Reminder untuk makan siang',
+          importance: Importance.high,
+          priority: Priority.high,
+        );
 
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidDetails);
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
 
     final now = DateTime.now();
     final scheduledTime = tz.TZDateTime.from(
-      DateTime(now.year, now.month, now.day, 11, 0),
+      DateTime(now.year, now.month, now.day, 12, 43),
       tz.local,
     );
 
@@ -88,15 +91,16 @@ class ReminderProvider extends ChangeNotifier {
   Future<void> triggerTestNotification() async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'test_notification_channel',
-      'Test Notification',
-      channelDescription: 'Notifikasi ini hanya untuk pengujian',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
+          'test_notification_channel',
+          'Test Notification',
+          channelDescription: 'Notifikasi ini hanya untuk pengujian',
+          importance: Importance.high,
+          priority: Priority.high,
+        );
 
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidDetails);
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
 
     await _notificationsPlugin.show(
       1,
