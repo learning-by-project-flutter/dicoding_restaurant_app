@@ -26,7 +26,7 @@ class FavoriteProvider with ChangeNotifier {
       _favorites = await _databaseHelper.getFavorites();
       _errorMessage = '';
     } catch (e) {
-      _errorMessage = 'Error loading favorites: $e';
+      _errorMessage = 'Tidak ada koneksi internet. Silakan cek koneksi Anda.';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -39,7 +39,7 @@ class FavoriteProvider with ChangeNotifier {
       _favoriteStatus[id] = restaurant != null;
       notifyListeners();
     } catch (e) {
-      _errorMessage = 'Error checking favorite status: $e';
+      _errorMessage = 'Tidak ada koneksi internet. Silakan cek koneksi Anda.';
       notifyListeners();
     }
   }
