@@ -48,19 +48,21 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final detailProvider =
-        Provider.of<RestaurantDetailProvider>(context, listen: false);
+    final detailProvider = Provider.of<RestaurantDetailProvider>(
+      context,
+      listen: false,
+    );
     Future.microtask(
-        () => detailProvider.fetchRestaurantDetail(widget.restaurantId));
+      () => detailProvider.fetchRestaurantDetail(widget.restaurantId),
+    );
 
-    final favoriteProvider =
-        Provider.of<FavoriteProvider>(context, listen: false);
-    Future.microtask(() async {
-      final isFav = await favoriteProvider.isFavorite(widget.restaurantId);
-      setState(() {
-        _isFavorite = isFav;
-      });
-    });
+    final favoriteProvider = Provider.of<FavoriteProvider>(
+      context,
+      listen: false,
+    );
+    Future.microtask(
+      () => favoriteProvider.checkFavoriteStatus(widget.restaurantId),
+    );
   }
 
   @override
@@ -69,18 +71,24 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
       appBar: AppBar(
         title: Text('Detail Restoran'),
         actions: [
-          Consumer<RestaurantDetailProvider>(
-            builder: (context, detailProvider, _) {
+          Consumer2<RestaurantDetailProvider, FavoriteProvider>(
+            builder: (context, detailProvider, favoriteProvider, _) {
               final state = detailProvider.state;
               if (state is RestaurantDetailSuccess) {
+                final isFavorite = favoriteProvider.isFavoriteById(
+                  widget.restaurantId,
+                );
+
                 return IconButton(
                   icon: Icon(
-                    _isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: _isFavorite ? Colors.red : null,
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : null,
                   ),
                   onPressed: () async {
-                    final favoriteProvider =
-                        Provider.of<FavoriteProvider>(context, listen: false);
+                    final favoriteProvider = Provider.of<FavoriteProvider>(
+                      context,
+                      listen: false,
+                    );
                     final restaurant = state.restaurant;
 
                     final restaurantData = Restaurant(
@@ -93,18 +101,14 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                     );
 
                     await favoriteProvider.toggleFavorite(restaurantData);
-                    final isFav =
-                        await favoriteProvider.isFavorite(restaurantData.id);
-
-                    setState(() {
-                      _isFavorite = isFav;
-                    });
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(_isFavorite
-                            ? '${restaurant.name} ditambahkan ke favorit'
-                            : '${restaurant.name} dihapus dari favorit'),
+                        content: Text(
+                          _isFavorite
+                              ? '${restaurant.name} ditambahkan ke favorit'
+                              : '${restaurant.name} dihapus dari favorit',
+                        ),
                         duration: Duration(seconds: 1),
                       ),
                     );
@@ -186,10 +190,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   SizedBox(height: 16.0),
                   Text(
                     'Alamat: ${restaurant.address}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelLarge
-                        ?.copyWith(fontWeight: FontWeight.w400),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                   SizedBox(height: 16.0),
                   Text(

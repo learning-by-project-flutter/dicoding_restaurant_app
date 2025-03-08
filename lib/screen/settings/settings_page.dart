@@ -85,7 +85,7 @@ class SettingsPage extends StatelessWidget {
 }
 
 class PendingRemindersList extends StatefulWidget {
-  const PendingRemindersList({Key? key}) : super(key: key);
+  const PendingRemindersList({super.key});
 
   @override
   State<PendingRemindersList> createState() => _PendingRemindersListState();

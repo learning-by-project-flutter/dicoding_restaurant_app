@@ -63,16 +63,13 @@ class ReminderProvider with ChangeNotifier {
     return requests.any((request) => request.id == 1);
   }
 
-  // Method to get all pending reminders
   Future<List<PendingNotificationRequest>> getPendingReminders() async {
     return await _notificationService.pendingNotificationRequests();
   }
 
-  // Method to cancel a specific reminder
   Future<void> cancelSpecificReminder(int id) async {
     await _notificationService.cancelNotification(id);
 
-    // If we canceled the lunch reminder, update the toggle state
     if (id == 1) {
       _isReminderEnabled = false;
       final prefs = await SharedPreferences.getInstance();
@@ -81,7 +78,6 @@ class ReminderProvider with ChangeNotifier {
     }
   }
 
-  // Method to schedule a new custom reminder
   Future<void> scheduleCustomReminder({
     required int id,
     required String title,

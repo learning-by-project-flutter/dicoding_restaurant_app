@@ -8,9 +8,15 @@ class FavoriteProvider with ChangeNotifier {
   bool _isLoading = false;
   String _errorMessage = '';
 
+  Map<String, bool> _favoriteStatus = {};
+
   List<Restaurant> get favorites => _favorites;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
+
+  bool isFavoriteById(String id) {
+    return _favoriteStatus[id] ?? false;
+  }
 
   Future<void> loadFavorites() async {
     _isLoading = true;
@@ -27,6 +33,17 @@ class FavoriteProvider with ChangeNotifier {
     }
   }
 
+  Future<void> checkFavoriteStatus(String id) async {
+    try {
+      final restaurant = await _databaseHelper.getFavoriteById(id);
+      _favoriteStatus[id] = restaurant != null;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Error checking favorite status: $e';
+      notifyListeners();
+    }
+  }
+
   Future<bool> isFavorite(String id) async {
     final restaurant = await _databaseHelper.getFavoriteById(id);
     return restaurant != null;
@@ -35,6 +52,7 @@ class FavoriteProvider with ChangeNotifier {
   Future<void> addFavorite(Restaurant restaurant) async {
     try {
       await _databaseHelper.insertFavorite(restaurant);
+      _favoriteStatus[restaurant.id] = true;
       await loadFavorites();
     } catch (e) {
       _errorMessage = 'Error adding to favorites: $e';
@@ -45,6 +63,7 @@ class FavoriteProvider with ChangeNotifier {
   Future<void> removeFavorite(String id) async {
     try {
       await _databaseHelper.removeFavorite(id);
+      _favoriteStatus[id] = false;
       await loadFavorites();
     } catch (e) {
       _errorMessage = 'Error removing from favorites: $e';
@@ -53,8 +72,7 @@ class FavoriteProvider with ChangeNotifier {
   }
 
   Future<void> toggleFavorite(Restaurant restaurant) async {
-    final isFav = await isFavorite(restaurant.id);
-    if (isFav) {
+    if (_favoriteStatus[restaurant.id] ?? false) {
       await removeFavorite(restaurant.id);
     } else {
       await addFavorite(restaurant);
