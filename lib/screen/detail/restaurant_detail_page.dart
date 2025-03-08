@@ -3,6 +3,7 @@ import 'package:dicoding_restaurant_app/provider/favorite_provider.dart';
 import 'package:dicoding_restaurant_app/provider/restaurant_detail_provider.dart';
 import 'package:dicoding_restaurant_app/provider/review_provider.dart';
 import 'package:dicoding_restaurant_app/static/restaurant_detail_state.dart';
+import 'package:dicoding_restaurant_app/static/review_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -324,34 +325,36 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   SizedBox(height: 8.0),
                   Consumer<ReviewProvider>(
                     builder: (context, reviewProvider, child) {
-                      if (reviewProvider.isLoading) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (reviewProvider.errorMessage.isNotEmpty) {
-                        return Center(child: Text(reviewProvider.errorMessage));
-                      } else if (reviewProvider.reviews.isEmpty) {
-                        return Center(child: Text('Belum ada ulasan'));
-                      } else {
-                        final reviews = reviewProvider.reviews;
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: reviews.length,
-                          itemBuilder: (context, index) {
-                            final review = reviews[index];
-                            return Card(
-                              margin: EdgeInsets.symmetric(vertical: 4.0),
-                              child: ListTile(
-                                title: Text(review.name),
-                                subtitle: Text(review.review),
-                                trailing: Text(
-                                  review.date,
-                                  style: TextStyle(fontSize: 12.0),
+                      final state = reviewProvider.state;
+
+                      return switch (state) {
+                        ReviewLoading() => Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        ReviewError(message: final message) => Center(
+                          child: Text(message),
+                        ),
+                        ReviewSuccess(reviews: final reviews) =>
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: reviews.length,
+                            itemBuilder: (context, index) {
+                              final review = reviews[index];
+                              return Card(
+                                margin: EdgeInsets.symmetric(vertical: 4.0),
+                                child: ListTile(
+                                  title: Text(review.name),
+                                  subtitle: Text(review.review),
+                                  trailing: Text(
+                                    review.date,
+                                    style: TextStyle(fontSize: 12.0),
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      }
+                              );
+                            },
+                          ),
+                      };
                     },
                   ),
                 ],

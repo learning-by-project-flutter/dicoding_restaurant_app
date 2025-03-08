@@ -1,39 +1,36 @@
+import 'package:dicoding_restaurant_app/static/review_state.dart';
 import 'package:flutter/material.dart';
 import 'package:dicoding_restaurant_app/data/api/api_services.dart';
-import 'package:dicoding_restaurant_app/data/model/review.dart';
 
 class ReviewProvider with ChangeNotifier {
-  List<Review> _reviews = [];
-  bool _isLoading = false;
-  String _errorMessage = '';
+  ReviewState _state = ReviewLoading();
 
-  List<Review> get reviews => _reviews;
-  bool get isLoading => _isLoading;
-  String get errorMessage => _errorMessage;
+  ReviewState get state => _state;
 
   Future<void> fetchReviews(String restaurantId) async {
-    _isLoading = true;
+    _state = ReviewLoading();
     notifyListeners();
 
     try {
       final reviews = await ApiServices.fetchReviews(restaurantId);
-      _reviews = reviews;
-      _errorMessage = '';
+      _state = ReviewSuccess(reviews);
     } catch (e) {
-      _errorMessage = 'Gagal memuat ulasan: $e';
+      _state = ReviewError('Gagal memuat ulasan: $e');
     } finally {
-      _isLoading = false;
       notifyListeners();
     }
   }
 
   Future<void> postReview(
-      String restaurantId, String name, String review) async {
+    String restaurantId,
+    String name,
+    String review,
+  ) async {
     try {
       await ApiServices.postReview(restaurantId, name, review);
       await fetchReviews(restaurantId);
     } catch (e) {
-      _errorMessage = 'Gagal mengirim ulasan: $e';
+      _state = ReviewError('Gagal mengirim ulasan: $e');
       notifyListeners();
     }
   }
