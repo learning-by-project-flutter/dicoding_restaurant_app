@@ -1,112 +1,158 @@
+import 'package:dicoding_restaurant_app/service/local_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-class ReminderProvider extends ChangeNotifier {
-  bool _isReminderOn = false;
-  bool get isReminderOn => _isReminderOn;
+class ReminderProvider with ChangeNotifier {
+  static const String _reminderEnabledKey = 'reminder_enabled';
+  bool _isReminderEnabled = false;
+  final LocalNotificationService _notificationService =
+      LocalNotificationService();
 
-  final FlutterLocalNotificationsPlugin _notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  bool get isReminderEnabled => _isReminderEnabled;
 
   ReminderProvider() {
-    _loadReminderSetting();
-    _initNotifications();
+    _loadPreferences();
   }
 
-  Future<void> _loadReminderSetting() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    _isReminderOn = prefs.getBool('daily_reminder') ?? false;
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isReminderEnabled = prefs.getBool(_reminderEnabledKey) ?? false;
     notifyListeners();
+
+    if (_isReminderEnabled) {
+      _scheduleNotification();
+    }
   }
 
   Future<void> toggleReminder(bool value) async {
-    _isReminderOn = value;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('daily_reminder', value);
+    _isReminderEnabled = value;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_reminderEnabledKey, value);
 
     if (value) {
-      _scheduleDailyReminder();
+      await _scheduleNotification();
     } else {
-      _cancelReminder();
+      await _cancelNotification();
     }
 
     notifyListeners();
   }
 
-  Future<void> _initNotifications() async {
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    final InitializationSettings settings = InitializationSettings(
-      android: androidSettings,
-    );
+  Future<void> _scheduleNotification() async {
+    await _notificationService.configureLocalTimeZone();
+    bool? permissionGranted = await _notificationService.requestPermissions();
 
-    await _notificationsPlugin.initialize(settings);
-
-    await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestNotificationsPermission();
+    if (permissionGranted ?? false) {
+      await _notificationService.scheduleDailyTenAMNotification(
+        id: 1,
+        channelId: "lunch_reminder",
+        channelName: "Lunch Reminder",
+      );
+    }
   }
 
-  Future<void> _scheduleDailyReminder() async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'daily_reminder_channel',
-          'Daily Reminder',
-          channelDescription: 'Reminder untuk makan siang',
-          importance: Importance.high,
-          priority: Priority.high,
-        );
+  Future<void> _cancelNotification() async {
+    await _notificationService.cancelNotification(1);
+  }
 
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
+  Future<bool> checkNotificationStatus() async {
+    final requests = await _notificationService.pendingNotificationRequests();
+    return requests.any((request) => request.id == 1);
+  }
 
-    final now = DateTime.now();
-    final scheduledTime = tz.TZDateTime.from(
-      DateTime(now.year, now.month, now.day, 12, 43),
+  // Method to get all pending reminders
+  Future<List<PendingNotificationRequest>> getPendingReminders() async {
+    return await _notificationService.pendingNotificationRequests();
+  }
+
+  // Method to cancel a specific reminder
+  Future<void> cancelSpecificReminder(int id) async {
+    await _notificationService.cancelNotification(id);
+
+    // If we canceled the lunch reminder, update the toggle state
+    if (id == 1) {
+      _isReminderEnabled = false;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_reminderEnabledKey, false);
+      notifyListeners();
+    }
+  }
+
+  // Method to schedule a new custom reminder
+  Future<void> scheduleCustomReminder({
+    required int id,
+    required String title,
+    required String body,
+    required TimeOfDay time,
+  }) async {
+    await _notificationService.configureLocalTimeZone();
+    bool? permissionGranted = await _notificationService.requestPermissions();
+
+    if (permissionGranted ?? false) {
+      final tz.TZDateTime scheduledDate = _calculateNextInstance(time);
+
+      await _scheduleCustomNotification(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduledDate,
+      );
+    }
+  }
+
+  tz.TZDateTime _calculateNextInstance(TimeOfDay time) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
     );
 
-    await _notificationsPlugin.zonedSchedule(
-      0,
-      'Waktunya Makan Siang!',
-      'Jangan lupa makan siang agar tetap sehat.',
-      scheduledTime,
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    return scheduledDate;
+  }
+
+  Future<void> _scheduleCustomNotification({
+    required int id,
+    required String title,
+    required String body,
+    required tz.TZDateTime scheduledDate,
+  }) async {
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'custom_reminder_$id',
+      'Custom Reminder',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+
+    final notificationDetails = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      scheduledDate,
       notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+          UILocalNotificationDateInterpretation.wallClockTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
-  }
 
-  Future<void> _cancelReminder() async {
-    await _notificationsPlugin.cancel(0);
-  }
-
-  Future<void> triggerTestNotification() async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'test_notification_channel',
-          'Test Notification',
-          channelDescription: 'Notifikasi ini hanya untuk pengujian',
-          importance: Importance.high,
-          priority: Priority.high,
-        );
-
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
-
-    await _notificationsPlugin.show(
-      1,
-      'Ini Notifikasi Test!',
-      'Jika kamu melihat ini, berarti notifikasi bekerja!',
-      notificationDetails,
-    );
+    notifyListeners();
   }
 }
